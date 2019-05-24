@@ -33,11 +33,6 @@ class ThreadClient(threading.Thread):
                 if cle != self.nom:      # ne pas le renvoyer à l'émetteur
                     conn_client[cle].send(message.encode())
 
-# Protection du serveur
-password = getpass("Entrez un mot de passe pour le serveur : ")
-password = password.encode()
-password = hashlib.sha1(password).hexdigest()
-
 # Initialisation du serveur - Mise en place du socket :
 mySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
@@ -52,32 +47,18 @@ mySocket.listen(5)
 conn_client = {}                # dictionnaire des connexions clients
 while 1:    
     connexion, adresse = mySocket.accept()
-    it = connexion.recv(1024)
-    it = it.decode()
+    it = connexion.recv(1024).decode()
 
-    # Vérification du mot de passe :
-    userPass = connexion.recv(1024)
-    userPass = userPass.decode()
-
-    locked = 1
-
-    if userPass == password:
-        locked = 0
-
-    if locked == 0:
-        # Créer un nouvel objet thread pour gérer la connexion :
-        th = ThreadClient(connexion, it)
-        th.start()
-        # Mémoriser la connexion dans le dictionnaire : 
-        conn_client[it] = connexion
-        print("Client %s connecté, adresse IP %s, port %s." % (it, adresse[0], adresse[1]))
-        # Dialogue avec le(s) client(s) :
-        for cle in conn_client:
-            messageConnexion = "** %s s'est connecté **" % it
-            conn_client[cle].send(messageConnexion.encode())
-            if cle != it:
-                messageConnectes = "** %s est connecté **" % cle
-                conn_client[it].send(messageConnectes.encode())
-    else:
-        connexion.send(b"Mot de passe incorrect...")
-        connexion.close()
+    # Créer un nouvel objet thread pour gérer la connexion :
+    th = ThreadClient(connexion, it)
+    th.start()
+    # Mémoriser la connexion dans le dictionnaire : 
+    conn_client[it] = connexion
+    print("Client %s connecté, adresse IP %s, port %s." % (it, adresse[0], adresse[1]))
+    # Dialogue avec le(s) client(s) :
+    for cle in conn_client:
+        messageConnexion = "** %s s'est connecté **" % it
+        conn_client[cle].send(messageConnexion.encode())
+        if cle != it:
+            messageConnectes = "** %s est connecté **" % cle
+            conn_client[it].send(messageConnectes.encode())

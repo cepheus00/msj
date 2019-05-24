@@ -3,16 +3,18 @@ from getpass import *
 import socket, sys, threading, hashlib
 
 pseudo = input("Entrez votre pseudo : ")
+
+while len(pseudo) > 12 or ' ' in pseudo:
+    print("Veuillez entrer un pseudo sans espace et de moins de 13 caractères.")
+    pseudo = input("Entrez votre pseudo : ")
+
 host = input("Entrez l'adresse IP du serveur : ")
 port = 12800
-password = getpass("Entrez le mot de passe du serveur : ")
-password = password.encode()
-password = hashlib.sha1(password).hexdigest()
 
 connexion = socket.socket()
 
 class ThreadReception(threading.Thread):
-    """objet thread gérant la réception des messages"""
+    """Thread gérant la réception des messages"""
     def __init__(self, connexion):
         threading.Thread.__init__(self)
         self.connexion = connexion
@@ -70,8 +72,7 @@ except socket.error:
     sys.exit()
 messages.insert('end', "Connexion établie avec le serveur.")
 
-connexion.send(pseudo.encode()) #Envoi du pseudo
-connexion.send(password.encode()) #Envoi du mot de passe
+connexion.send(pseudo.encode())
 
 #Lancement de l'écoute
 th_R = ThreadReception(connexion)
